@@ -23,3 +23,6 @@ frontend/vite.config.d.ts
 !.env.example
 .DS_Store
 Thumbs.db
+
+# Local competition notes and superseded planning documents
+/.internal/

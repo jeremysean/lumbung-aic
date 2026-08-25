@@ -18,10 +18,9 @@ CONVENTIONAL_COMMIT = re.compile(
 )
 REQUIRED_FILES = (
     "README.md",
+    "LUMBUNG-PLAN.md",
     "MODEL_CARD.md",
-    "SUBMISSION_CHECKLIST.md",
-    "docs/CLAIMS_REGISTER.md",
-    "docs/VIDEO_RUNBOOK.md",
+    "CONTRIBUTING.md",
     "docs/openapi.json",
     "docker-compose.yml",
     "backend/Dockerfile",
@@ -30,6 +29,14 @@ REQUIRED_FILES = (
     "data/synthetic_training_history.csv",
     "artifacts/replenishment_models.joblib",
     "artifacts/model_metadata.json",
+)
+FORBIDDEN_PUBLIC_FILES = (
+    "GUIDELINES.md",
+    "Lumbung-Adjusted-Plan.md",
+    "LUMBUNG-Final-Plan.md",
+    "SUBMISSION_CHECKLIST.md",
+    "docs/CLAIMS_REGISTER.md",
+    "docs/VIDEO_RUNBOOK.md",
 )
 
 
@@ -42,6 +49,9 @@ def main() -> None:
     for relative_path in REQUIRED_FILES:
         if not (ROOT / relative_path).is_file():
             failures.append(f"required file missing: {relative_path}")
+    for relative_path in FORBIDDEN_PUBLIC_FILES:
+        if (ROOT / relative_path).exists():
+            failures.append(f"internal document exposed at public path: {relative_path}")
 
     metadata_path = ROOT / "artifacts" / "model_metadata.json"
     metadata = json.loads(metadata_path.read_text(encoding="utf-8"))

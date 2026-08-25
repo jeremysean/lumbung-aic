@@ -1,47 +1,93 @@
 # Lumbung
 
-Lumbung is a local-first AI replenishment copilot for growing independent retailers. A store owner uploads one `store_snapshot.csv`; Lumbung forecasts demand at P50 and P90, applies MOQ and stock constraints, then allocates purchase bundles under the store's hard budget limit.
+Lumbung is a local-first AI replenishment copilot for growing independent retailers. It turns sales history, current stock, purchase constraints, and a store budget into a reviewable **Beli Sekarang** or **Tunda** plan for every SKU.
 
-The preliminary MVP intentionally implements one synchronous interaction. It has no login, database, background job, external API, automatic purchase order, or cloud dependency.
+This repository contains the preliminary MVP: one CSV upload, one synchronous recommendation, and no automatic purchasing. The broader product direction is documented in [LUMBUNG-PLAN.md](LUMBUNG-PLAN.md).
 
-## Run with Docker Compose
+## Handover status
 
-Requirements: Docker Desktop with Docker Compose v2.
+- The backend, frontend, sample upload, and browser flow have passed a local non-Docker run.
+- Backend tests, Python lint, frontend lint, frontend production build, and the release verifier pass.
+- The Docker definitions are complete and `docker compose config` is valid.
+- A final clean Docker runtime test is still pending. The last retry was interrupted by a Docker Desktop host storage error (`read-only file system`), not an application test failure.
+
+A teammate should be able to run the project on another machine with a healthy Docker installation. Treat that first clean Compose run as the final portability check.
+
+## Quick start with Docker
+
+Requirements:
+
+- Docker Desktop or Docker Engine with Compose v2;
+- internet access for the first image build;
+- free host ports `3000` and `8000`.
+
+From the repository root:
 
 ```bash
 docker compose up --build
 ```
 
-Wait until both services are healthy, then open:
+Wait until the backend is healthy, then open:
 
 - application: <http://localhost:3000>
 - API health: <http://localhost:8000/health>
-- interactive API contract: <http://localhost:8000/docs>
-- static OpenAPI contract: [`docs/openapi.json`](docs/openapi.json)
+- interactive API documentation: <http://localhost:8000/docs>
 
-Download the sample CSV in the application, upload it unchanged, and click **Buat rencana belanja**. Stop the application with:
+In the application, download the sample CSV, upload it unchanged, and select **Buat rencana belanja**. The checked-in sample should return eight SKU recommendations, five **Beli Sekarang** decisions, and proposed spending of Rp2,495,000 from a Rp2,500,000 budget.
+
+Stop both services with:
 
 ```bash
 docker compose down
 ```
 
-No environment variables or credentials are required.
+No credentials, environment variables, database, or cloud service are required for this MVP.
 
-## Core flow
+## Local run without Docker
 
-```text
-Browser (React)
-  -> POST /v1/recommendations with one CSV
-  -> strict schema and business-rule validation
-  -> leakage-safe lag, rolling, and calendar features
-  -> frozen LightGBM P50/P90 quantile models
-  -> validation-calibrated P90 forecast
-  -> target stock and MOQ rounding
-  -> deterministic bounded-knapsack budget allocation
-  -> numeric reasons, audit metadata, and downloadable CSV
+Python 3.12 or 3.13 and Node.js 22 are recommended.
+
+Install dependencies once:
+
+```powershell
+python -m venv .venv
+.venv\Scripts\Activate.ps1
+python -m pip install -r backend/requirements-dev.txt
+Set-Location frontend
+npm ci
+Set-Location ..
 ```
 
-The frontend and backend are separate containers. Nginx serves the static UI and proxies `/api/*` to FastAPI. Inference is synchronous and the trained artifacts are read-only.
+Run the backend in the first PowerShell terminal:
+
+```powershell
+.venv\Scripts\Activate.ps1
+$env:PYTHONPATH = "backend"
+uvicorn app.main:app --host 127.0.0.1 --port 8000
+```
+
+Run the frontend in a second PowerShell terminal:
+
+```powershell
+Set-Location frontend
+npm run dev -- --host 127.0.0.1 --port 3000
+```
+
+Open <http://localhost:3000>. Vite proxies `/api/*` to the backend, so no temporary repository configuration is needed.
+
+## What the MVP does
+
+```text
+CSV snapshot
+  -> strict validation
+  -> leakage-safe features
+  -> frozen LightGBM P50 and P90 forecasts
+  -> target stock and MOQ rounding
+  -> deterministic budget optimizer
+  -> owner-reviewable plan and downloadable CSV
+```
+
+The frontend and backend are separate services. Nginx serves the production React interface and proxies `/api/*` to FastAPI. Model artifacts are checked in and loaded read-only at runtime.
 
 ## Input contract
 
@@ -49,8 +95,8 @@ The CSV must contain these exact columns:
 
 | Column | Meaning | Validation |
 |---|---|---|
-| `date` | Daily observation date | Parseable date; unique per SKU |
-| `sku_id` | Store SKU identifier | Non-empty; at least 28 observed days |
+| `date` | Daily observation date | Parseable and unique per SKU |
+| `sku_id` | Store SKU identifier | Non-empty, with at least 28 observed days |
 | `category` | Product category | Non-empty text |
 | `sales_qty` | Units sold that day | Numeric and non-negative |
 | `stock_on_hand` | Current units in store | Numeric and non-negative |
@@ -58,87 +104,80 @@ The CSV must contain these exact columns:
 | `unit_cost` | Purchase cost in IDR per unit | Numeric and non-negative |
 | `unit_margin` | Expected margin in IDR per unit | Numeric and non-negative |
 | `lead_time_days` | Supplier lead time | Integer of at least 1 |
-| `moq` | Minimum order quantity in units | Integer of at least 1 |
+| `moq` | Minimum order quantity | Integer of at least 1 |
 | `available_budget` | Store purchase budget in IDR | One positive value repeated on every row |
 
-The backend retains zero-sales days because intermittency is a model signal. It rejects missing values, negative values, duplicate `sku_id + date` pairs, inconsistent budgets, non-CSV uploads, and files over 10 MB with structured Problem Details responses.
+The API rejects missing values, negative values, duplicate `sku_id + date` pairs, inconsistent budgets, non-CSV uploads, and files larger than 10 MB. Error responses follow Problem Details.
 
 ## Output contract
 
-Each SKU returns:
+For each SKU, Lumbung returns:
 
-- P50 and P90 demand for `lead_time_days + 7` days;
-- current stock, on-order stock, and stockout risk;
-- deterministic `BELI_SEKARANG` or `TUNDA` decision;
-- MOQ-compliant quantity and cost;
-- numeric reason and priority score.
+- P50 and P90 demand for the supplier lead time plus a seven-day review period;
+- current and on-order stock plus stockout risk;
+- a deterministic `BELI_SEKARANG` or `TUNDA` decision;
+- an MOQ-compliant quantity and cost;
+- a numeric reason and priority score.
 
-The complete response also includes budget utilization, model and parameter versions, data cutoff, review period, and a SHA-256 checksum of the normalized input. The owner remains responsible for approving every purchase.
+The complete response includes budget utilization, model and parameter versions, the data cutoff, review period, and a SHA-256 checksum of normalized input. The store owner remains responsible for every purchase approval.
 
-## Model development and evidence boundary
+## Verification
 
-The checked-in artifact is a fine-tuned LightGBM global quantile model. Tuning uses two expanding temporal folds. Evaluation uses a later untouched temporal test containing 432 examples. The P90 offset is selected on a pre-test calibration window.
+Backend and release checks:
 
-| Metric | Fine-tuned model | Moving-average baseline |
-|---|---:|---:|
-| Mean P50/P90 pinball loss | 1.786392 | 1.828699 |
-| P50 WAPE | 0.200564 | 0.205738 |
-| P90 coverage | 0.891204 | N/A |
-
-These results are from deterministic **synthetic retail history** and establish only that the software pipeline and acceptance gate work in the supplied test regime. They do not prove stockout reduction, savings, product-market fit, or transfer to Indonesian retail data. See [MODEL_CARD.md](MODEL_CARD.md) and `artifacts/model_metadata.json` for the full parameters, data hash, folds, and limitations.
-
-## Reproduce training and tests
-
-Python 3.12 or 3.13 is recommended.
-
-```bash
-python -m venv .venv
-# Windows PowerShell: .venv\Scripts\Activate.ps1
-# macOS/Linux: source .venv/bin/activate
-python -m pip install -r backend/requirements-dev.txt
-python scripts/generate_demo_data.py
-python scripts/train_model.py
-python scripts/export_openapi.py
-$env:PYTHONPATH="backend"  # macOS/Linux: export PYTHONPATH=backend
+```powershell
+.venv\Scripts\Activate.ps1
+$env:PYTHONPATH = "backend"
 python -m pytest backend/tests -q --cov=backend/app
 python -m ruff check backend scripts
 python scripts/verify_release.py
 ```
 
-Frontend verification:
+Frontend checks:
 
-```bash
-cd frontend
-npm ci
+```powershell
+Set-Location frontend
 npm run lint
 npm run build
 ```
 
-Training is deterministic for the fixed data generator, version pins, and seed. `trained_at_utc` is expected to change between runs; predictions and reported metrics must not.
+Validate the Compose file without starting containers:
+
+```bash
+docker compose config --quiet
+```
+
+## Model evidence
+
+The checked-in LightGBM artifact was trained and evaluated on deterministic synthetic retail history. On a later temporal holdout containing 432 examples, it recorded mean P50/P90 pinball loss of `1.786392`, compared with `1.828699` for the moving-average baseline. P50 WAPE was `0.200564`, compared with `0.205738` for the baseline, and empirical P90 coverage was `0.891204`.
+
+These results validate the supplied software and evaluation pipeline only. They do not establish stockout reduction, savings, product-market fit, or performance on Indonesian retail data. See [MODEL_CARD.md](MODEL_CARD.md) and `artifacts/model_metadata.json` for the evaluation design and limitations.
 
 ## Repository map
 
 ```text
-artifacts/                 Frozen models and machine-readable model metadata
-backend/app/               Validation, feature, inference, optimizer, and API modules
-backend/tests/             Unit and contract tests
-data/                      Synthetic training history and upload-ready example
-frontend/                  Focused React upload and recommendation interface
-scripts/                   Deterministic data generation and temporal model tuning
-docker-compose.yml         Local two-container runtime
-SUBMISSION_CHECKLIST.md    AIC deliverable and compliance status
-docs/                      Claims register and video recording runbook
+artifacts/             Frozen models and machine-readable metadata
+backend/app/           API, validation, features, inference, and optimizer
+backend/tests/         Unit and API contract tests
+data/                  Synthetic training history and upload-ready sample
+docs/openapi.json      Versioned static API contract
+frontend/              React interface and Nginx runtime
+scripts/               Data generation, training, API export, release checks
+docker-compose.yml     Local two-service runtime
+LUMBUNG-PLAN.md        Consolidated product and technical roadmap
+MODEL_CARD.md          Model evidence, safeguards, and limitations
+CONTRIBUTING.md        Collaboration and repository rules
 ```
 
-## Known limitations
+## Troubleshooting
 
-- Synthetic demand is not representative evidence for any real store population.
-- POS zero sales may be censored by stockouts; no availability flag is currently available.
-- P90 coverage is close to, but not exactly, 90% on the synthetic holdout.
-- No field pilot, local POS integration, expiry model, or supplier reliability model is included.
+- If a port is already used, stop the conflicting process or change the host-side port in `docker-compose.yml`.
+- If the backend is unhealthy, run `docker compose logs backend` and confirm that `artifacts/replenishment_models.joblib` is present.
+- If Docker Desktop reports storage, WSL, or read-only filesystem errors, restart Docker Desktop and free Docker storage before rebuilding. This is a host runtime issue.
+- To clear stopped project containers without deleting source files, run `docker compose down --remove-orphans`.
+
+Future POS or supplier connectors will require secrets. Put those values in a local `.env`; `.env` files are ignored and must never be committed.
 
 ## Responsible use
 
-Lumbung never sends a purchase automatically. Budget is a hard constraint, recommendations are reproducible, and all reasons are generated from numeric model and inventory outputs rather than an LLM. Before a real pilot, remove customer identifiers from exports, obtain store consent, validate inventory accuracy, and retrain and recalibrate on an authorized local dataset.
-
-Use [docs/CLAIMS_REGISTER.md](docs/CLAIMS_REGISTER.md) before writing proposal or video claims. Follow [docs/VIDEO_RUNBOOK.md](docs/VIDEO_RUNBOOK.md) for the two required AIC recordings.
+Lumbung never sends a purchase automatically in this MVP. Budget is a hard constraint, recommendations are reproducible, and explanations come from numeric inventory and model outputs. A real pilot requires store consent, inventory-accuracy checks, authorized local data, retraining, calibration, and measured operational baselines.
