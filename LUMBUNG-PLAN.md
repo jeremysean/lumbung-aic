@@ -33,13 +33,13 @@ The approval screen should show editable quantity, supplier, quoted or estimated
 | Data intake | One validated CSV upload | CSV plus one POS import adapter | Scheduled multi-POS synchronization |
 | Forecasting | LightGBM P50 and P90 demand | Retrained on authorized pilot data | Per-store monitoring and recalibration |
 | Purchase decision | MOQ and budget optimizer | Editable proposal grouped by supplier | Multi-supplier price, reliability, and cash-flow optimization |
-| Approval | Recommendation review only | Approval popup with audit trail | Role-based approval thresholds |
-| Purchase order | Downloadable recommendation CSV | Purchase-order draft | Versioned PO and receiving reconciliation |
-| Supplier contact | Not included | Telegram sandbox or copy-to-chat workflow | Approved Telegram and WhatsApp Business connectors |
+| Approval | Editable browser simulation with explicit owner confirmation | Persisted approval with audit trail | Role-based approval thresholds |
+| Purchase order | Downloadable local draft after approval | Persisted, supplier-grouped PO | Versioned PO and receiving reconciliation |
+| Supplier contact | Message preview and simulated local status | Telegram sandbox or copy-to-chat workflow | Approved Telegram and WhatsApp Business connectors |
 | Supplier response | Not included | Manual confirmation capture | Structured reply parsing and exception queue |
 | Inventory system | Existing POS remains external | Read from one POS and export receiving updates | Two-way adapters with conflict handling |
 
-The current repository is correctly scoped for a preliminary prototype. A full store-management system would duplicate POS capabilities and dilute the main innovation. The final product should prove the closed replenishment loop through integration, approval, supplier communication, and receiving.
+The preliminary prototype keeps the core AI interaction to one CSV upload and one synchronous result. Review and approval run in browser memory after inference. The prototype labels supplier records and sending status as simulations. It includes no authentication, database, background job, POS adapter, or messaging connector. The final product should prove the closed replenishment loop through integration, persisted approval, supplier communication, and receiving.
 
 ## 4. Current core inference
 

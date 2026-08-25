@@ -2,11 +2,11 @@
 
 Lumbung is a local-first AI replenishment copilot for growing independent retailers. It turns sales history, current stock, purchase constraints, and a store budget into a reviewable **Beli Sekarang** or **Tunda** plan for every SKU.
 
-This repository contains the preliminary MVP: one CSV upload, one synchronous recommendation, and no automatic purchasing. The broader product direction is documented in [LUMBUNG-PLAN.md](LUMBUNG-PLAN.md).
+This repository contains the preliminary MVP: one CSV upload, one synchronous AI recommendation, and a browser-only approval simulation. The owner can edit quantity, demo supplier, price, and requested arrival date before approving a draft purchase order. Lumbung does not contact a supplier or purchase anything. The broader product direction is documented in [LUMBUNG-PLAN.md](LUMBUNG-PLAN.md).
 
 ## Handover status
 
-- The backend, frontend, sample upload, and browser flow have passed a local non-Docker run.
+- The backend, frontend, sample upload, approval workflow, and supplier-message simulation have passed a local non-Docker browser run on desktop and mobile layouts.
 - Backend tests, Python lint, frontend lint, frontend production build, and the release verifier pass.
 - The Docker definitions are complete and `docker compose config` is valid.
 - A final clean Docker runtime test is still pending. The last retry was interrupted by a Docker Desktop host storage error (`read-only file system`), not an application test failure.
@@ -33,7 +33,7 @@ Wait until the backend is healthy, then open:
 - API health: <http://localhost:8000/health>
 - interactive API documentation: <http://localhost:8000/docs>
 
-In the application, download the sample CSV, upload it unchanged, and select **Buat rencana belanja**. The checked-in sample should return eight SKU recommendations, five **Beli Sekarang** decisions, and proposed spending of Rp2,495,000 from a Rp2,500,000 budget.
+In the application, download the sample CSV, upload it unchanged, and select **Buat rencana belanja**. The checked-in sample should return eight SKU recommendations, five **Beli Sekarang** decisions, and proposed spending of Rp2,495,000 from a Rp2,500,000 budget. Select **Tinjau dan siapkan draft** to test the local approval simulation.
 
 Stop both services with:
 
@@ -84,7 +84,9 @@ CSV snapshot
   -> frozen LightGBM P50 and P90 forecasts
   -> target stock and MOQ rounding
   -> deterministic budget optimizer
-  -> owner-reviewable plan and downloadable CSV
+  -> owner-reviewable plan
+  -> editable browser-only approval simulation
+  -> draft PO and supplier-message preview
 ```
 
 The frontend and backend are separate services. Nginx serves the production React interface and proxies `/api/*` to FastAPI. Model artifacts are checked in and loaded read-only at runtime.
@@ -120,6 +122,19 @@ For each SKU, Lumbung returns:
 - a numeric reason and priority score.
 
 The complete response includes budget utilization, model and parameter versions, the data cutoff, review period, and a SHA-256 checksum of normalized input. The store owner remains responsible for every purchase approval.
+
+## Approval simulation
+
+The prototype adds a post-inference workflow without adding another AI input or network integration:
+
+1. The owner opens the five recommended purchase lines.
+2. The owner may edit quantity, unit price, demo supplier, and requested arrival date.
+3. The browser blocks approval when quantity violates MOQ, price is invalid, the date has passed, or total spending exceeds the budget.
+4. The owner confirms the final value and creates a draft PO.
+5. Lumbung groups lines by demo supplier and prepares a message preview.
+6. **Simulasikan pengiriman** changes local UI state only.
+
+Supplier names and sending status are synthetic interface data. The browser does not call Telegram, WhatsApp, a POS, or any supplier API. Approval state disappears when the page reloads. This keeps the preliminary workflow synchronous and local, with one CSV as the core AI input. A real connector requires persistent approval records, idempotency, authentication, and an audited outbox.
 
 ## Verification
 
