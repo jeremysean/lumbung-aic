@@ -3,6 +3,7 @@ from __future__ import annotations
 import hashlib
 import json
 from dataclasses import dataclass
+from functools import lru_cache
 from math import ceil
 from pathlib import Path
 
@@ -21,6 +22,7 @@ class ModelBundle:
     metadata: dict
 
 
+@lru_cache(maxsize=1)
 def load_bundle(artifact_dir: Path) -> ModelBundle:
     model_path = artifact_dir / "replenishment_models.joblib"
     metadata_path = artifact_dir / "model_metadata.json"

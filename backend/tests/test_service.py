@@ -15,3 +15,6 @@ def test_inference_is_deterministic_and_feasible():
     assert first["proposed_spend"] <= first["budget"]
     assert all(item["order_qty"] % item["moq"] == 0 for item in first["items"])
 
+
+def test_frozen_model_bundle_is_cached():
+    assert load_bundle(ROOT / "artifacts") is load_bundle(ROOT / "artifacts")
