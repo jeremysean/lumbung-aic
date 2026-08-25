@@ -8,6 +8,8 @@ services:
     restart: unless-stopped
     environment:
       LOG_LEVEL: INFO
+      ARTIFACT_DIR: /app/artifacts
+      SAMPLE_PATH: /app/data/sample_store_snapshot.csv
     ports:
       - "8000:8000"
     networks:
@@ -28,4 +30,3 @@ services:
 networks:
   lumbung:
     driver: bridge
-
