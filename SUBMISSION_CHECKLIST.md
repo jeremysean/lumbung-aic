@@ -20,6 +20,7 @@ Status date: 25 August 2026. This file separates verified repository work from e
 - [x] Backend tests pass locally.
 - [x] Frontend production build passes locally.
 - [x] Python lint passes locally.
+- [x] Release verifier confirms model/data hash, acceptance gate, deterministic sample output, budget, MOQ, required files, and Conventional Commits.
 - [ ] Clean Docker Compose build and browser-to-backend smoke test pass on the final commit.
 - [ ] Proof-of-work recording repeats the clean Docker run without cut.
 
@@ -47,4 +48,3 @@ Status date: 25 August 2026. This file separates verified repository work from e
 7. Show budget feasibility, MOQ quantities, numeric reasons, audit checksum, and CSV download.
 8. Show `http://localhost:8000/docs` and `docker compose ps`.
 9. If reducing waiting time, use fast-forward only; do not cut the recording.
-

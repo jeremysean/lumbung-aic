@@ -106,8 +106,12 @@ def validate_snapshot(frame: pd.DataFrame) -> pd.DataFrame:
             details.append({"field": column, "issue": f"{count} nilai negatif tidak diizinkan"})
     if (frame["moq"] < 1).any():
         details.append({"field": "moq", "issue": "MOQ harus minimal 1"})
+    if ((frame["moq"] % 1) != 0).any():
+        details.append({"field": "moq", "issue": "MOQ harus berupa unit bulat"})
     if (frame["lead_time_days"] < 1).any():
         details.append({"field": "lead_time_days", "issue": "lead time harus minimal 1 hari"})
+    if ((frame["lead_time_days"] % 1) != 0).any():
+        details.append({"field": "lead_time_days", "issue": "lead time harus berupa hari bulat"})
     if (frame["sku_id"].astype(str).str.strip() == "").any():
         details.append({"field": "sku_id", "issue": "SKU tidak boleh kosong"})
     if frame.duplicated(["sku_id", "date"]).any():

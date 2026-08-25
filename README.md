@@ -100,6 +100,7 @@ python scripts/train_model.py
 $env:PYTHONPATH="backend"  # macOS/Linux: export PYTHONPATH=backend
 python -m pytest backend/tests -q --cov=backend/app
 python -m ruff check backend scripts
+python scripts/verify_release.py
 ```
 
 Frontend verification:
@@ -107,6 +108,7 @@ Frontend verification:
 ```bash
 cd frontend
 npm ci
+npm run lint
 npm run build
 ```
 
@@ -131,9 +133,7 @@ SUBMISSION_CHECKLIST.md    AIC deliverable and compliance status
 - POS zero sales may be censored by stockouts; no availability flag is currently available.
 - P90 coverage is close to, but not exactly, 90% on the synthetic holdout.
 - No field pilot, local POS integration, expiry model, or supplier reliability model is included.
-- The bundled Google font request improves typography when online; system fonts preserve all functionality offline.
 
 ## Responsible use
 
 Lumbung never sends a purchase automatically. Budget is a hard constraint, recommendations are reproducible, and all reasons are generated from numeric model and inventory outputs rather than an LLM. Before a real pilot, remove customer identifiers from exports, obtain store consent, validate inventory accuracy, and retrain and recalibrate on an authorized local dataset.
-

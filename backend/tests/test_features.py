@@ -49,3 +49,11 @@ def test_budget_must_be_store_level_constant():
     with pytest.raises(InputValidationError, match="tidak valid"):
         validate_snapshot(frame)
 
+
+@pytest.mark.parametrize("field", ["moq", "lead_time_days"])
+def test_discrete_fields_reject_fractional_values(field: str):
+    frame = valid_frame()
+    frame[field] = frame[field].astype(float)
+    frame.loc[0, field] = 2.5
+    with pytest.raises(InputValidationError, match="tidak valid"):
+        validate_snapshot(frame)
