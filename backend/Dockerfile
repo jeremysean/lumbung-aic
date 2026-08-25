@@ -7,6 +7,8 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     SAMPLE_PATH=/app/data/sample_store_snapshot.csv
 
 WORKDIR /app
+RUN apt-get update && apt-get install -y --no-install-recommends libgomp1 \
+    && rm -rf /var/lib/apt/lists/*
 RUN addgroup --system lumbung && adduser --system --ingroup lumbung lumbung
 COPY backend/requirements.txt ./requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
