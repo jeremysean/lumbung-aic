@@ -77,17 +77,21 @@ Open <http://localhost:3000>. Vite proxies `/api/*` to the backend, so no tempor
 
 ## What the MVP does
 
-```text
-CSV snapshot
-  -> strict validation
-  -> leakage-safe features
-  -> frozen LightGBM P50 and P90 forecasts
-  -> target stock and MOQ rounding
-  -> deterministic budget optimizer
-  -> owner-reviewable plan
-  -> editable browser-only approval simulation
-  -> draft PO and supplier-message preview
+```mermaid
+flowchart TD
+    A["<b>CSV snapshot</b><br/>sales, stock, on-order, cost, MOQ, budget"]
+    B["<b>Validation and leakage-safe features</b><br/>schema and business rules, no future information"]
+    C["<b>LightGBM forecast</b><br/>P50 and P90 demand over lead time + 7 days"]
+    D{"<b>Budget optimizer</b><br/>MOQ bundles, budget is a hard cap"}
+    E["<b>Plan per SKU</b><br/>BELI SEKARANG or TUNDA, with a numeric reason"]
+    F["<b>Owner edits and guardrails</b><br/>quantity, price, supplier, arrival date"]
+    G["<b>Explicit approval and draft PO</b><br/>grouped by supplier"]
+    H(["<b>Supplier message preview</b><br/>simulation only, nothing is sent"])
+
+    A --> B --> C --> D --> E --> F --> G -.-> H
 ```
+
+The AI forecasts, the deterministic optimizer decides quantity and budget feasibility, and the owner approves.
 
 The frontend and backend are separate services. Nginx serves the production React interface and proxies `/api/*` to FastAPI. Model artifacts are checked in and loaded read-only at runtime.
 
