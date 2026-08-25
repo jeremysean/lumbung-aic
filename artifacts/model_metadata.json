@@ -1,0 +1,107 @@
+{
+  "model_version": "lumbung-lightgbm-quantile-1.0.0",
+  "parameter_version": "replenishment-v1",
+  "trained_at_utc": "2026-08-25T13:32:15.162318+00:00",
+  "data_source": "Reproducible synthetic retail history; not field evidence.",
+  "data_sha256": "7f6444d33295a9b3de863649f4f0f0cfbb25ea72871eb12f0fc4b0574a4b35cd",
+  "data_cutoff": "2025-08-08",
+  "random_seed": 20260825,
+  "feature_columns": [
+    "category",
+    "lag_1",
+    "lag_7",
+    "lag_14",
+    "rolling_mean_7",
+    "rolling_mean_28",
+    "rolling_std_28",
+    "zero_rate_28",
+    "recent_sum_7",
+    "recent_sum_28",
+    "moving_average_forecast",
+    "seasonal_naive_forecast",
+    "dispersion_horizon",
+    "day_of_week",
+    "month",
+    "unit_cost",
+    "unit_margin",
+    "lead_time_days",
+    "horizon_days",
+    "history_days"
+  ],
+  "validation": {
+    "strategy": "two expanding-window tuning folds plus untouched temporal test",
+    "test_start": "2025-07-17",
+    "tuning_results": [
+      {
+        "params": {
+          "n_estimators": 220,
+          "learning_rate": 0.035,
+          "num_leaves": 15,
+          "max_depth": 5,
+          "min_child_samples": 20
+        },
+        "mean_pinball_loss": 1.80849,
+        "std_pinball_loss": 0.135407,
+        "fold_scores": [
+          1.943897,
+          1.673083
+        ]
+      },
+      {
+        "params": {
+          "n_estimators": 300,
+          "learning_rate": 0.025,
+          "num_leaves": 23,
+          "max_depth": 6,
+          "min_child_samples": 16
+        },
+        "mean_pinball_loss": 1.828018,
+        "std_pinball_loss": 0.157178,
+        "fold_scores": [
+          1.985196,
+          1.670841
+        ]
+      },
+      {
+        "params": {
+          "n_estimators": 180,
+          "learning_rate": 0.05,
+          "num_leaves": 15,
+          "max_depth": 5,
+          "min_child_samples": 24
+        },
+        "mean_pinball_loss": 1.827573,
+        "std_pinball_loss": 0.168682,
+        "fold_scores": [
+          1.996255,
+          1.658891
+        ]
+      }
+    ]
+  },
+  "best_parameters": {
+    "n_estimators": 220,
+    "learning_rate": 0.035,
+    "num_leaves": 15,
+    "max_depth": 5,
+    "min_child_samples": 20
+  },
+  "p90_calibration_offset": 1.933685,
+  "metrics": {
+    "test_examples": 432,
+    "p50_pinball_loss": 2.24335,
+    "p90_pinball_loss": 1.329433,
+    "mean_pinball_loss": 1.786392,
+    "baseline_mean_pinball_loss": 1.828699,
+    "wape_p50": 0.200564,
+    "baseline_wape": 0.205738,
+    "p90_coverage": 0.891204,
+    "mean_forecast_bias_p50": -1.262518
+  },
+  "acceptance_gate_passed": true,
+  "limitations": [
+    "Synthetic demand is used for software verification and cannot establish field impact.",
+    "Zero sales may represent stockout-censored demand in real POS data.",
+    "The model must be revalidated and retrained before use on a new retail population."
+  ]
+}
