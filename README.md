@@ -125,6 +125,7 @@ frontend/                  Focused React upload and recommendation interface
 scripts/                   Deterministic data generation and temporal model tuning
 docker-compose.yml         Local two-container runtime
 SUBMISSION_CHECKLIST.md    AIC deliverable and compliance status
+docs/                      Claims register and video recording runbook
 ```
 
 ## Known limitations
@@ -137,3 +138,5 @@ SUBMISSION_CHECKLIST.md    AIC deliverable and compliance status
 ## Responsible use
 
 Lumbung never sends a purchase automatically. Budget is a hard constraint, recommendations are reproducible, and all reasons are generated from numeric model and inventory outputs rather than an LLM. Before a real pilot, remove customer identifiers from exports, obtain store consent, validate inventory accuracy, and retrain and recalibrate on an authorized local dataset.
+
+Use [docs/CLAIMS_REGISTER.md](docs/CLAIMS_REGISTER.md) before writing proposal or video claims. Follow [docs/VIDEO_RUNBOOK.md](docs/VIDEO_RUNBOOK.md) for the two required AIC recordings.

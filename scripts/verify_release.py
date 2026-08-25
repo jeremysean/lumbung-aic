@@ -20,6 +20,8 @@ REQUIRED_FILES = (
     "README.md",
     "MODEL_CARD.md",
     "SUBMISSION_CHECKLIST.md",
+    "docs/CLAIMS_REGISTER.md",
+    "docs/VIDEO_RUNBOOK.md",
     "docker-compose.yml",
     "backend/Dockerfile",
     "frontend/Dockerfile",
@@ -89,4 +91,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

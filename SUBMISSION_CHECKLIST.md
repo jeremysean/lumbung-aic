@@ -21,6 +21,8 @@ Status date: 25 August 2026. This file separates verified repository work from e
 - [x] Frontend production build passes locally.
 - [x] Python lint passes locally.
 - [x] Release verifier confirms model/data hash, acceptance gate, deterministic sample output, budget, MOQ, required files, and Conventional Commits.
+- [x] Claims register separates verified implementation facts, synthetic results, and unsupported impact claims.
+- [x] Proof-of-work and promotional video runbook follows title, duration, visibility, timestamp, double-screen, and no-cut rules.
 - [ ] Clean Docker Compose build and browser-to-backend smoke test pass on the final commit.
 - [ ] Proof-of-work recording repeats the clean Docker run without cut.
 
