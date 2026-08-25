@@ -22,6 +22,7 @@ REQUIRED_FILES = (
     "SUBMISSION_CHECKLIST.md",
     "docs/CLAIMS_REGISTER.md",
     "docs/VIDEO_RUNBOOK.md",
+    "docs/openapi.json",
     "docker-compose.yml",
     "backend/Dockerfile",
     "frontend/Dockerfile",

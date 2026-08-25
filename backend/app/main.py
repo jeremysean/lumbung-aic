@@ -11,6 +11,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse, StreamingResponse
 
 from .features import InputValidationError, read_snapshot
+from .schemas import HealthEnvelope, ProblemDetails, RecommendationEnvelope
 from .service import load_bundle, recommend
 
 logging.basicConfig(level=os.getenv("LOG_LEVEL", "INFO"))
@@ -69,13 +70,29 @@ async def unhandled_error_handler(request: Request, exc: Exception):
     return problem(500, "INTERNAL_ERROR", "Inference gagal diproses.", request.state.trace_id)
 
 
-@app.get("/health", tags=["system"])
+@app.get(
+    "/health",
+    tags=["system"],
+    response_model=HealthEnvelope,
+    responses={500: {"model": ProblemDetails}},
+)
 def health():
     bundle = load_bundle(ARTIFACT_DIR)
     return {"data": {"status": "ok", "model_version": bundle.metadata["model_version"]}}
 
 
-@app.get("/v1/templates/store-snapshot", tags=["recommendations"])
+@app.get(
+    "/v1/templates/store-snapshot",
+    tags=["recommendations"],
+    response_class=StreamingResponse,
+    responses={
+        200: {
+            "description": "Upload-ready store snapshot example.",
+            "content": {"text/csv": {"schema": {"type": "string"}}},
+        },
+        404: {"model": ProblemDetails, "description": "Sample CSV is missing."},
+    },
+)
 def download_template():
     if not SAMPLE_PATH.exists():
         return problem(404, "SAMPLE_NOT_FOUND", "Contoh CSV tidak tersedia.", str(uuid.uuid4()))
@@ -86,7 +103,17 @@ def download_template():
     )
 
 
-@app.post("/v1/recommendations", tags=["recommendations"])
+@app.post(
+    "/v1/recommendations",
+    tags=["recommendations"],
+    response_model=RecommendationEnvelope,
+    responses={
+        413: {"model": ProblemDetails, "description": "File exceeds 10 MB."},
+        415: {"model": ProblemDetails, "description": "Upload is not a CSV."},
+        422: {"model": ProblemDetails, "description": "CSV schema or values are invalid."},
+        500: {"model": ProblemDetails, "description": "Inference failed."},
+    },
+)
 async def create_recommendation(request: Request, file: UploadFile = File(...)):
     if not file.filename or not file.filename.lower().endswith(".csv"):
         return problem(415, "UNSUPPORTED_FILE", "Unggah file dengan format .csv.", request.state.trace_id)
@@ -97,4 +124,3 @@ async def create_recommendation(request: Request, file: UploadFile = File(...)):
     bundle = load_bundle(ARTIFACT_DIR)
     result = recommend(frame, bundle)
     return {"data": result, "meta": {"trace_id": request.state.trace_id}}
-

@@ -17,6 +17,7 @@ Wait until both services are healthy, then open:
 - application: <http://localhost:3000>
 - API health: <http://localhost:8000/health>
 - interactive API contract: <http://localhost:8000/docs>
+- static OpenAPI contract: [`docs/openapi.json`](docs/openapi.json)
 
 Download the sample CSV in the application, upload it unchanged, and click **Buat rencana belanja**. Stop the application with:
 
@@ -97,6 +98,7 @@ python -m venv .venv
 python -m pip install -r backend/requirements-dev.txt
 python scripts/generate_demo_data.py
 python scripts/train_model.py
+python scripts/export_openapi.py
 $env:PYTHONPATH="backend"  # macOS/Linux: export PYTHONPATH=backend
 python -m pytest backend/tests -q --cov=backend/app
 python -m ruff check backend scripts

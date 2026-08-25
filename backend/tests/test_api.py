@@ -1,3 +1,4 @@
+import json
 from pathlib import Path
 
 from fastapi.testclient import TestClient
@@ -29,3 +30,14 @@ def test_non_csv_rejected_with_problem_details():
     assert response.status_code == 415
     assert response.json()["code"] == "UNSUPPORTED_FILE"
 
+
+def test_exported_openapi_contract_matches_application():
+    exported = json.loads((ROOT / "docs" / "openapi.json").read_text(encoding="utf-8"))
+    assert exported == app.openapi()
+    recommendation = exported["paths"]["/v1/recommendations"]["post"]
+    assert recommendation["responses"]["200"]["content"]["application/json"]["schema"]["$ref"].endswith(
+        "/RecommendationEnvelope"
+    )
+    assert recommendation["responses"]["422"]["content"]["application/json"]["schema"]["$ref"].endswith(
+        "/ProblemDetails"
+    )

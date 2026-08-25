@@ -1,0 +1,442 @@
+{
+  "components": {
+    "schemas": {
+      "Body_create_recommendation_v1_recommendations_post": {
+        "properties": {
+          "file": {
+            "format": "binary",
+            "title": "File",
+            "type": "string"
+          }
+        },
+        "required": [
+          "file"
+        ],
+        "title": "Body_create_recommendation_v1_recommendations_post",
+        "type": "object"
+      },
+      "ErrorDetail": {
+        "properties": {
+          "field": {
+            "title": "Field",
+            "type": "string"
+          },
+          "issue": {
+            "title": "Issue",
+            "type": "string"
+          }
+        },
+        "required": [
+          "field",
+          "issue"
+        ],
+        "title": "ErrorDetail",
+        "type": "object"
+      },
+      "HealthData": {
+        "properties": {
+          "model_version": {
+            "title": "Model Version",
+            "type": "string"
+          },
+          "status": {
+            "const": "ok",
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "model_version"
+        ],
+        "title": "HealthData",
+        "type": "object"
+      },
+      "HealthEnvelope": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/HealthData"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "HealthEnvelope",
+        "type": "object"
+      },
+      "ProblemDetails": {
+        "properties": {
+          "code": {
+            "title": "Code",
+            "type": "string"
+          },
+          "details": {
+            "items": {
+              "$ref": "#/components/schemas/ErrorDetail"
+            },
+            "title": "Details",
+            "type": "array"
+          },
+          "status": {
+            "title": "Status",
+            "type": "integer"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "trace_id": {
+            "title": "Trace Id",
+            "type": "string"
+          },
+          "type": {
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "title",
+          "status",
+          "code",
+          "trace_id"
+        ],
+        "title": "ProblemDetails",
+        "type": "object"
+      },
+      "RecommendationAudit": {
+        "properties": {
+          "data_cutoff": {
+            "title": "Data Cutoff",
+            "type": "string"
+          },
+          "input_sha256": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Input Sha256",
+            "type": "string"
+          },
+          "model_version": {
+            "title": "Model Version",
+            "type": "string"
+          },
+          "parameter_version": {
+            "title": "Parameter Version",
+            "type": "string"
+          },
+          "review_period_days": {
+            "minimum": 1.0,
+            "title": "Review Period Days",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "model_version",
+          "parameter_version",
+          "data_cutoff",
+          "input_sha256",
+          "review_period_days"
+        ],
+        "title": "RecommendationAudit",
+        "type": "object"
+      },
+      "RecommendationEnvelope": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/RecommendationResult"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/ResponseMeta"
+          }
+        },
+        "required": [
+          "data",
+          "meta"
+        ],
+        "title": "RecommendationEnvelope",
+        "type": "object"
+      },
+      "RecommendationItem": {
+        "properties": {
+          "category": {
+            "title": "Category",
+            "type": "string"
+          },
+          "decision": {
+            "enum": [
+              "BELI_SEKARANG",
+              "TUNDA"
+            ],
+            "title": "Decision",
+            "type": "string"
+          },
+          "forecast_p50": {
+            "title": "Forecast P50",
+            "type": "number"
+          },
+          "forecast_p90": {
+            "title": "Forecast P90",
+            "type": "number"
+          },
+          "horizon_days": {
+            "title": "Horizon Days",
+            "type": "integer"
+          },
+          "moq": {
+            "title": "Moq",
+            "type": "integer"
+          },
+          "on_order": {
+            "title": "On Order",
+            "type": "number"
+          },
+          "order_cost": {
+            "title": "Order Cost",
+            "type": "number"
+          },
+          "order_qty": {
+            "title": "Order Qty",
+            "type": "integer"
+          },
+          "priority_score": {
+            "title": "Priority Score",
+            "type": "number"
+          },
+          "reason": {
+            "title": "Reason",
+            "type": "string"
+          },
+          "sku_id": {
+            "title": "Sku Id",
+            "type": "string"
+          },
+          "stock_on_hand": {
+            "title": "Stock On Hand",
+            "type": "number"
+          },
+          "stockout_risk": {
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Stockout Risk",
+            "type": "number"
+          },
+          "unit_cost": {
+            "title": "Unit Cost",
+            "type": "number"
+          }
+        },
+        "required": [
+          "sku_id",
+          "category",
+          "decision",
+          "order_qty",
+          "moq",
+          "unit_cost",
+          "order_cost",
+          "stock_on_hand",
+          "on_order",
+          "horizon_days",
+          "forecast_p50",
+          "forecast_p90",
+          "stockout_risk",
+          "priority_score",
+          "reason"
+        ],
+        "title": "RecommendationItem",
+        "type": "object"
+      },
+      "RecommendationResult": {
+        "properties": {
+          "audit": {
+            "$ref": "#/components/schemas/RecommendationAudit"
+          },
+          "budget": {
+            "exclusiveMinimum": 0.0,
+            "title": "Budget",
+            "type": "number"
+          },
+          "budget_utilization": {
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Budget Utilization",
+            "type": "number"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/RecommendationItem"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "proposed_spend": {
+            "minimum": 0.0,
+            "title": "Proposed Spend",
+            "type": "number"
+          }
+        },
+        "required": [
+          "budget",
+          "proposed_spend",
+          "budget_utilization",
+          "items",
+          "audit"
+        ],
+        "title": "RecommendationResult",
+        "type": "object"
+      },
+      "ResponseMeta": {
+        "properties": {
+          "trace_id": {
+            "title": "Trace Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "trace_id"
+        ],
+        "title": "ResponseMeta",
+        "type": "object"
+      }
+    }
+  },
+  "info": {
+    "description": "Budget-aware probabilistic replenishment for independent retailers.",
+    "title": "Lumbung Replenishment API",
+    "version": "1.0.0"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/health": {
+      "get": {
+        "operationId": "health_health_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthEnvelope"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Health",
+        "tags": [
+          "system"
+        ]
+      }
+    },
+    "/v1/recommendations": {
+      "post": {
+        "operationId": "create_recommendation_v1_recommendations_post",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_create_recommendation_v1_recommendations_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RecommendationEnvelope"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "File exceeds 10 MB."
+          },
+          "415": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Upload is not a CSV."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "CSV schema or values are invalid."
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Inference failed."
+          }
+        },
+        "summary": "Create Recommendation",
+        "tags": [
+          "recommendations"
+        ]
+      }
+    },
+    "/v1/templates/store-snapshot": {
+      "get": {
+        "operationId": "download_template_v1_templates_store_snapshot_get",
+        "responses": {
+          "200": {
+            "content": {
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Upload-ready store snapshot example."
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Sample CSV is missing."
+          }
+        },
+        "summary": "Download Template",
+        "tags": [
+          "recommendations"
+        ]
+      }
+    }
+  }
+}
