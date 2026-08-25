@@ -13,6 +13,9 @@ artifacts/*.tmp
 # Frontend
 frontend/node_modules/
 frontend/dist/
+frontend/*.tsbuildinfo
+frontend/vite.config.js
+frontend/vite.config.d.ts
 
 # Environment and OS
 .env
@@ -20,4 +23,3 @@ frontend/dist/
 !.env.example
 .DS_Store
 Thumbs.db
-
