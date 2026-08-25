@@ -1,0 +1,31 @@
+name: lumbung
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    restart: unless-stopped
+    environment:
+      LOG_LEVEL: INFO
+    ports:
+      - "8000:8000"
+    networks:
+      - lumbung
+
+  frontend:
+    build:
+      context: frontend
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_healthy
+    ports:
+      - "3000:80"
+    networks:
+      - lumbung
+
+networks:
+  lumbung:
+    driver: bridge
+
